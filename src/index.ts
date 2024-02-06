@@ -1,15 +1,18 @@
 import { config } from 'dotenv';
-import express from 'express';
-
 config();
-const app = express();
+import express from 'express';
+import router from './controllers';
+import { initDb } from './data';
 
 process.once('SIGUSR2', () => process.kill(process.pid, 'SIGUSR2'));
 process.once('SIGINT', () => process.kill(process.pid, 'SIGINT'));
 
-app.get('/', (req, res) => {
-  res.json({ success: true });
-});
-app.use('*', (req, res) => res.status(404).json({ message: 'Not found' }));
+async function initServer() {
+  await initDb();
+  const app = express();
+  app.use(express.json({ type: 'application/json' }));
+  app.use('/', router);
+  app.listen(8080, () => console.log('FoodShopAPI is ready on port 8080'));
+}
 
-app.listen(8080, () => console.log('FoodShopAPI is ready on port 8080'));
+initServer();
