@@ -1,5 +1,5 @@
 import knex from '../data';
-import { Entry, Repository } from './Repository';
+import { Entry, Repository } from '@repo/Repository';
 
 export type Ingredient = {
   name: string;
@@ -46,6 +46,13 @@ export class IngredientsRepository extends Repository<Ingredient> {
       .offset(page * this.pageLength)
       .limit(this.pageLength);
     return results;
+  }
+
+  public async checkExistence(ids: number[]) {
+    const results = await knex<number>('ingredients')
+      .select('id')
+      .whereIn('id', ids);
+    return results.length === ids.length;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

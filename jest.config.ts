@@ -22,15 +22,13 @@ const config: Config = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
+  collectCoverageFrom: ['src/**/*.ts'],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
-  // coveragePathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
+  coveragePathIgnorePatterns: ['<rootDir>/src/data'],
 
   // Indicates which provider should be used to instrument code for coverage
   coverageProvider: 'v8',
@@ -86,7 +84,10 @@ const config: Config = {
   moduleFileExtensions: ['js', 'ts', 'json'],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^@repo/(.*)$': '<rootDir>/src/repo/$1',
+    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -167,7 +168,7 @@ const config: Config = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tests/tsconfig.json' }],
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation

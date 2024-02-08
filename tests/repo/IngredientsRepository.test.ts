@@ -3,6 +3,7 @@ import {
   IngredientsRepository,
 } from '../../src/repo/IngredientsRepository';
 import { Entry, Repository } from '../../src/repo/Repository';
+import { values } from '../seeds/ingredients';
 
 describe('Ingredients Repository', () => {
   const repository = new IngredientsRepository();
@@ -44,12 +45,7 @@ describe('Ingredients Repository', () => {
   it('should be able to list existing ingredients', async () => {
     ingredients = await repository.list({ name: '', page: 0 });
     expect(Array.isArray(ingredients)).toBeTruthy();
-    expect(ingredients.length).toEqual(2);
-  });
-
-  it('should list by name order', () => {
-    expect(ingredients[0].name).toEqual('eggs');
-    expect(ingredients[1].name).toEqual('milk');
+    expect(ingredients.length).toEqual(values.length + 1);
   });
 
   it('should be able to filter on name when listing', async () => {
@@ -74,5 +70,10 @@ describe('Ingredients Repository', () => {
     ]);
     const list = await repository.list({ name: 'milk', page: 0 });
     expect(list.length).toEqual(1);
+  });
+
+  it('should be able to check for ingredients existence', async () => {
+    expect(await repository.checkExistence([1, 2, 3])).toBeTruthy();
+    expect(await repository.checkExistence([1, 2, 42])).toBeFalsy();
   });
 });

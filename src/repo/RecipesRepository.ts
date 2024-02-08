@@ -1,5 +1,5 @@
 import { Repository } from '@repo/Repository';
-import knex from 'src/data';
+import knex from '../data';
 
 export type Recipe = {
   name: string;
