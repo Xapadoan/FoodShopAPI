@@ -6,7 +6,7 @@ export abstract class Repository<T extends Record<string, unknown>> {
   public async create?(item: T): Promise<Entry<T>>;
   public async read?(search: Partial<Entry<T>>): Promise<Entry<T> | undefined>;
   public async list?(
-    search: Record<keyof T, unknown>,
+    search: Record<string, unknown>,
     page: number
   ): Promise<Entry<T>[]>;
   public async update?(id: number, item: Partial<T>): Promise<Entry<T>>;

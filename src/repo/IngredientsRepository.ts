@@ -34,8 +34,8 @@ export class IngredientsRepository extends Repository<Ingredient> {
   }
 
   public async list({
-    name = '',
-    page = 0,
+    name,
+    page,
   }: {
     name: Ingredient['name'];
     page: number;
