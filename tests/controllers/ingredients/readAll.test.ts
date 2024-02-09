@@ -7,7 +7,7 @@ import {
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
 
-describe('Read All Controller', () => {
+describe('Ingredients Read All Controller', () => {
   const listResults = [
     { id: 1, name: 'potatoes' },
     { id: 2, name: 'milk' },

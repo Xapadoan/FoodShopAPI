@@ -7,7 +7,7 @@ import {
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
 
-describe('Ingredients Controller', () => {
+describe('Ingredients Create Controller', () => {
   const app = express();
   let createSpy: jest.SpyInstance<
     Promise<Entry<Ingredient>>,
