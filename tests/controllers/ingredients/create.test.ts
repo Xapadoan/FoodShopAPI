@@ -58,6 +58,7 @@ describe('Ingredients Create Controller', () => {
       expect(response.body.name).toEqual('apples');
       expect(validateSpy).toHaveBeenCalledTimes(1);
       expect(createSpy).toHaveBeenCalledTimes(1);
+      expect(createSpy).toHaveBeenCalledWith({ name: 'apples' });
     } catch {
       expect(false).toBeTruthy();
     }

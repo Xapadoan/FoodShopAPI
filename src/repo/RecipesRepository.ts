@@ -58,6 +58,35 @@ export class RecipesRepository extends Repository<Recipe> {
     return results;
   }
 
+  public async read({
+    id,
+  }: {
+    id: number;
+  }): Promise<Entry<Recipe> | undefined> {
+    const result = await knex.transaction(async (trx) => {
+      const [recipe, steps, ingredients] = await Promise.all([
+        trx('recipes')
+          .select('id', 'name', 'nb_people as numberOfPeople')
+          .where({ id })
+          .first(),
+        trx('steps')
+          .select('ranking', 'text')
+          .where({ recipe_id: id })
+          .orderBy('ranking'),
+        trx('recipes_ingredients')
+          .select('ingredient_id as id', 'quantity')
+          .where({ recipe_id: id }),
+      ]);
+      if (!recipe) return undefined;
+      return {
+        ...recipe,
+        steps,
+        ingredients,
+      };
+    });
+    return result;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public validate(object: any): object is Recipe {
     if (typeof object !== 'object') return false;

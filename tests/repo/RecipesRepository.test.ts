@@ -1,7 +1,9 @@
 import knex from '../../src/data';
-import { RecipesRepository } from '../../src/repo/RecipesRepository';
-import { Repository } from '../../src/repo/Repository';
+import { Recipe, RecipesRepository } from '../../src/repo/RecipesRepository';
+import { Repository, Entry } from '../../src/repo/Repository';
 import { values as allRecipes } from '../seeds/recipes';
+import { values as allRecipesIngredients } from '../seeds/recipes_ingredients';
+import { values as allSteps } from '../seeds/steps';
 
 describe('Recipes Repository', () => {
   beforeAll(async () => {
@@ -199,8 +201,37 @@ describe('Recipes Repository', () => {
           expect(recipe).toMatchObject(item);
         }
       });
+    } catch {
+      expect(false).toBeTruthy();
+    }
+  });
+
+  it('should return falsy result when trying to read a non-existing recipe', async () => {
+    const recipe = await repository.read({ id: 42 });
+    expect(recipe).toBeUndefined();
+  });
+
+  it('should be able to read an existing recipe', async () => {
+    try {
+      const expectedResult: Entry<Recipe> = {
+        id: allRecipes[0].id,
+        name: allRecipes[0].name,
+        numberOfPeople: allRecipes[0].nb_people,
+        steps: allSteps
+          .filter((step) => step.recipe_id === allRecipes[0].id)
+          .map((step) => ({ ranking: step.ranking, text: step.text })),
+        ingredients: allRecipesIngredients
+          .filter((ingredient) => ingredient.recipe_id === allRecipes[0].id)
+          .map((ingredient) => ({
+            id: ingredient.ingredient_id,
+            quantity: ingredient.quantity,
+          })),
+      };
+      const recipe = await repository.read({ id: allRecipes[0].id });
+      expect(recipe).toBeTruthy();
+      expect(recipe).toMatchObject(expectedResult);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       expect(false).toBeTruthy();
     }
   });
