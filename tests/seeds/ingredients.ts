@@ -29,6 +29,42 @@ export const values = [
     id: 7,
     name: 'water',
   },
+  {
+    id: 8,
+    name: 'ground beef',
+  },
+  {
+    id: 9,
+    name: 'crushed tomatoes',
+  },
+  {
+    id: 10,
+    name: 'raz el hanout',
+  },
+  {
+    id: 11,
+    name: 'yellow curry powder',
+  },
+  {
+    id: 12,
+    name: 'red kidney beans',
+  },
+  {
+    id: 13,
+    name: 'yellow onion',
+  },
+  {
+    id: 14,
+    name: 'cinnamon',
+  },
+  {
+    id: 15,
+    name: 'chilli sauce',
+  },
+  {
+    id: 16,
+    name: 'garlic cloves',
+  },
 ];
 
 export async function seed(knex: Knex) {

@@ -1,3 +1,4 @@
+import knex from '../../src/data';
 import {
   Ingredient,
   IngredientsRepository,
@@ -6,6 +7,10 @@ import { Entry, Repository } from '../../src/repo/Repository';
 import { values } from '../seeds/ingredients';
 
 describe('Ingredients Repository', () => {
+  beforeAll(async () => {
+    await knex.seed.run();
+  });
+
   const repository = new IngredientsRepository();
 
   it('should be a repository', () => {

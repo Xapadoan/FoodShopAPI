@@ -1,4 +1,4 @@
-import { Repository } from '@repo/Repository';
+import { Repository, Entry } from '@repo/Repository';
 import knex from '../data';
 
 export type Recipe = {
@@ -11,6 +11,10 @@ export type Recipe = {
   }[];
 };
 
+export type RecipePreview = Pick<
+  Entry<Recipe>,
+  'name' | 'numberOfPeople' | 'id'
+>;
 export class RecipesRepository extends Repository<Recipe> {
   protected pageLength = 50;
 
@@ -36,6 +40,21 @@ export class RecipesRepository extends Repository<Recipe> {
       );
       return { id, ...recipe };
     });
+    return results;
+  }
+
+  public async list({
+    name,
+    page,
+  }: {
+    name: Recipe['name'];
+    page: number;
+  }): Promise<RecipePreview[]> {
+    const results = await knex<RecipePreview>('recipes')
+      .select('id', 'name', 'nb_people as numberOfPeople')
+      .where('name', 'LIKE', `%${name}%`)
+      .offset(page * this.pageLength)
+      .limit(this.pageLength);
     return results;
   }
 

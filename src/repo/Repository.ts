@@ -8,7 +8,7 @@ export abstract class Repository<T extends Record<string, unknown>> {
   public async list?(
     search: Record<string, unknown>,
     page: number
-  ): Promise<Entry<T>[]>;
+  ): Promise<Partial<Entry<T>>[]>;
   public async update?(id: number, item: Partial<T>): Promise<Entry<T>>;
   public async delete?(id: number): Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

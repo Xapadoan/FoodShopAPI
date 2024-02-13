@@ -1,7 +1,12 @@
+import knex from '../../src/data';
 import { RecipesRepository } from '../../src/repo/RecipesRepository';
 import { Repository } from '../../src/repo/Repository';
+import { values as allRecipes } from '../seeds/recipes';
 
 describe('Recipes Repository', () => {
+  beforeAll(async () => {
+    await knex.seed.run();
+  });
   const repository = new RecipesRepository();
 
   it('should be a repository', () => {
@@ -177,6 +182,26 @@ describe('Recipes Repository', () => {
       expect(false).toBeTruthy();
     } catch (error) {
       expect(error).toBeTruthy();
+    }
+  });
+
+  it('should be able to list recipes', async () => {
+    try {
+      const expectedRecipes = allRecipes.map((recipe) => ({
+        ...recipe,
+        numberOfPeople: recipe.nb_people,
+      }));
+      const list = await repository.list({ name: '', page: 0 });
+      expectedRecipes.forEach((recipe) => {
+        const item = list.find((r) => r.id === recipe.id);
+        expect(item).not.toBeUndefined();
+        if (item) {
+          expect(recipe).toMatchObject(item);
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      expect(false).toBeTruthy();
     }
   });
 });
