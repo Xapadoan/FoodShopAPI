@@ -4,7 +4,7 @@ import {
   IngredientsRepository,
 } from '../../src/repo/IngredientsRepository';
 import { Entry, Repository } from '../../src/repo/Repository';
-import { values } from '../seeds/ingredients';
+import { values as allIngredients } from '../seeds/ingredients';
 
 describe('Ingredients Repository', () => {
   beforeAll(async () => {
@@ -24,10 +24,21 @@ describe('Ingredients Repository', () => {
     expect(repository.validate({ name: 89 })).toBeFalsy();
   });
 
-  it('should be able to read an existing ingredient', async () => {
-    const ingredient = await repository.read({ name: 'eggs' });
+  it('should be able to read an existing ingredient by name', async () => {
+    const ingredient = await repository.read({ name: allIngredients[0].name });
     expect(ingredient).toBeTruthy();
-    expect(repository.validate(ingredient)).toBeTruthy();
+    expect(ingredient).toMatchObject(allIngredients[0]);
+  });
+
+  it('should be able to read an existing ingredient by id', async () => {
+    const ingredient = await repository.read({ id: allIngredients[0].id });
+    expect(ingredient).toBeTruthy();
+    expect(ingredient).toMatchObject(allIngredients[0]);
+  });
+
+  it('should return undefined if no search is provided', async () => {
+    const ingredient = await repository.read({});
+    expect(ingredient).toBeUndefined();
   });
 
   it('should return falsy when reading an undefined ingredient', async () => {
@@ -50,7 +61,7 @@ describe('Ingredients Repository', () => {
   it('should be able to list existing ingredients', async () => {
     ingredients = await repository.list({ name: '', page: 0 });
     expect(Array.isArray(ingredients)).toBeTruthy();
-    expect(ingredients.length).toEqual(values.length + 1);
+    expect(ingredients.length).toEqual(allIngredients.length + 1);
   });
 
   it('should be able to filter on name when listing', async () => {

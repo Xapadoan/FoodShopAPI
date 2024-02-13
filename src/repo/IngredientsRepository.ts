@@ -24,12 +24,18 @@ export class IngredientsRepository extends Repository<Ingredient> {
   }
 
   public async read({
+    id,
     name,
-  }: Ingredient): Promise<Entry<Ingredient> | undefined> {
-    const results = await knex<Entry<Ingredient>>('ingredients')
-      .select('*')
-      .where({ name })
-      .first();
+  }: Partial<Entry<Ingredient>>): Promise<Entry<Ingredient> | undefined> {
+    const query = knex<Entry<Ingredient>>('ingredients').select('*').first();
+    if (id) {
+      query.where({ id });
+    }
+    if (name) {
+      query.where({ name });
+    }
+    if (!id && !name) return undefined;
+    const results = await query;
     return results;
   }
 
