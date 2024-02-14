@@ -3,8 +3,12 @@ import request from 'supertest';
 import recipesRouter from '../../../src/controllers/recipes';
 import { Recipe, RecipesRepository } from '../../../src/repo/RecipesRepository';
 import { Entry } from '../../../src/repo/Repository';
+import {
+  expectResolvedValueEquals,
+  expectResolvedValueMatch,
+} from '../../utils';
 
-describe('Ingredients Read All Controller', () => {
+describe('Recipes Read Controller', () => {
   const readResult = {
     id: 1,
     name: 'Boiled egg',
@@ -29,7 +33,7 @@ describe('Ingredients Read All Controller', () => {
   beforeAll(() => {
     readSpy = jest
       .spyOn(RecipesRepository.prototype, 'read')
-      .mockImplementation(async (_: { id: number }) => readResult);
+      .mockResolvedValue(readResult);
     app.use(express.json({ type: 'application/json' }));
     app.use('/', recipesRouter);
   });
@@ -43,54 +47,34 @@ describe('Ingredients Read All Controller', () => {
   });
 
   it('should return 400 if param is not a number', async () => {
-    try {
-      const response = await request(app).get('/1e');
-      expect(response.status).toEqual(400);
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    const response = await request(app).get('/1e');
+    expect(readSpy).not.toHaveBeenCalled();
+    expect(response.status).toEqual(400);
   });
 
   it('should return 404 if the recipe does not exist', async () => {
-    try {
-      readSpy.mockImplementationOnce(async (_: { id: number }) => undefined);
-      const response = await request(app).get('/42');
-      expect(response.status).toEqual(404);
-    } catch {
-      expect(false).toBeTruthy();
-    }
-  });
-
-  it('should return a recipe with status 200', async () => {
-    try {
-      const response = await request(app).get('/1');
-      expect(response.status).toEqual(200);
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    readSpy.mockResolvedValueOnce(undefined);
+    const response = await request(app).get('/42');
+    expect(readSpy).toHaveBeenCalledTimes(1);
+    expect(readSpy).toHaveBeenCalledWith({ id: 42 });
+    await expectResolvedValueEquals(readSpy, undefined);
+    expect(response.status).toEqual(404);
   });
 
   it('should call read with the id param and return the results', async () => {
-    try {
-      const response = await request(app).get('/1');
-      expect(readSpy).toHaveBeenCalledTimes(1);
-      expect(readSpy).toHaveBeenCalledWith({ id: 1 });
-      expect(response.body).toMatchObject(readResult);
-    } catch (error) {
-      console.log(error);
-      expect(false).toBeTruthy();
-    }
+    const response = await request(app).get('/1');
+    expect(readSpy).toHaveBeenCalledTimes(1);
+    expect(readSpy).toHaveBeenCalledWith({ id: 1 });
+    await expectResolvedValueMatch(readSpy, readResult);
+    expect(response.status).toEqual(200);
+    expect(response.body).toMatchObject(readResult);
   });
 
   it('should return 500 if anything throws', async () => {
-    try {
-      readSpy.mockImplementationOnce((_) => {
-        throw new Error('Intentional read error');
-      });
-      const response = await request(app).get('/1');
-      expect(response.status).toEqual(500);
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    readSpy.mockImplementationOnce((_) => {
+      throw new Error('Intentional read error');
+    });
+    const response = await request(app).get('/1');
+    expect(response.status).toEqual(500);
   });
 });

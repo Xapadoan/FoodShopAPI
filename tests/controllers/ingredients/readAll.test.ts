@@ -6,6 +6,10 @@ import {
   IngredientsRepository,
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
+import {
+  expectResolvedValueEquals,
+  expectResolvedValueMatch,
+} from '../../utils';
 
 describe('Ingredients Read All Controller', () => {
   const listResults = [
@@ -21,9 +25,7 @@ describe('Ingredients Read All Controller', () => {
   beforeAll(() => {
     listSpy = jest
       .spyOn(IngredientsRepository.prototype, 'list')
-      .mockImplementation(
-        async (_: { name: string; page: number }) => listResults
-      );
+      .mockImplementation(async (_) => listResults);
     app.use(express.json({ type: 'application/json' }));
     app.use('/', ingredientsRouter);
   });
@@ -37,58 +39,59 @@ describe('Ingredients Read All Controller', () => {
   });
 
   it('should return 400 if query string is not valid', async () => {
-    try {
-      const responses = await Promise.all([
-        request(app).get('/?name=n&page=n'),
-        request(app).get('/?name=n&page=4&page=6'),
-        request(app).get('/?name=n&page=4&name=m'),
-      ]);
-      responses.forEach((res) => {
-        expect(res.status).toEqual(400);
-      });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    const responses = await Promise.all([
+      request(app).get('/?name=n&page=n'),
+      request(app).get('/?name=n&page=4&page=6'),
+      request(app).get('/?name=n&page=4&name=m'),
+    ]);
+    expect(listSpy).not.toHaveBeenCalled();
+    responses.forEach((res) => {
+      expect(res.status).toEqual(400);
+    });
   });
 
-  it('should return a paginated list with status 200', async () => {
-    try {
-      const response = await request(app).get('/');
-      expect(response.status).toEqual(200);
-      const { page, length, results } = response.body;
-      expect(typeof page).toEqual('number');
-      expect(typeof length).toEqual('number');
-      expect(Array.isArray(results)).toBeTruthy();
-    } catch {
-      expect(false).toBeTruthy();
-    }
+  it('should return a paginated list with status 200 and apply default filters', async () => {
+    const response = await request(app).get('/');
+    expect(listSpy).toHaveBeenCalledTimes(1);
+    expect(listSpy).toHaveBeenCalledWith({ name: '', page: 0 });
+    await expectResolvedValueMatch(listSpy, listResults);
+    expect(response.status).toEqual(200);
+    expect(response.body).toMatchObject({
+      page: 0,
+      length: listResults.length,
+      results: listResults,
+    });
   });
 
   it('should accept optional query parameter', async () => {
-    try {
-      const responses = await Promise.all([
-        request(app).get('/'),
-        request(app).get('/?page=4'),
-        request(app).get('/?name=n'),
-        request(app).get('/?name=n&page=4'),
-      ]);
-      responses.forEach((res) => {
-        expect(res.status).toEqual(200);
-      });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    const responses = await Promise.all([
+      request(app).get('/'),
+      request(app).get('/?page=4'),
+      request(app).get('/?name=n'),
+      request(app).get('/?name=n&page=4'),
+    ]);
+    responses.forEach((res) => {
+      expect(res.status).toEqual(200);
+    });
   });
 
   it('should pass query parameters to list', async () => {
-    try {
-      const response = await request(app).get('/?name=n&page=4');
-      expect(listSpy).toHaveBeenCalledTimes(1);
-      expect(listSpy).toHaveBeenCalledWith({ name: 'n', page: 4 });
-      expect(response.body.results).toEqual(listResults);
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    await request(app).get('/?name=n&page=4');
+    expect(listSpy).toHaveBeenCalledTimes(1);
+    expect(listSpy).toHaveBeenCalledWith({ name: 'n', page: 4 });
+  });
+
+  it('should return empty pagination if list results is empty', async () => {
+    listSpy.mockResolvedValueOnce([]);
+    const response = await request(app).get('/');
+    expect(listSpy).toHaveBeenCalledTimes(1);
+    await expectResolvedValueEquals(listSpy, []);
+    expect(response.status).toEqual(200);
+    expect(response.body).toMatchObject({
+      page: 0,
+      length: 0,
+      results: [],
+    });
   });
 
   it('should return 500 if anything throws', async () => {

@@ -6,6 +6,10 @@ import {
   IngredientsRepository,
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
+import { expectResolvedValueMatch } from '../../utils';
+
+const validPayload = { name: 'apples ' };
+const validResponse = { id: 1, ...validPayload };
 
 describe('Ingredients Create Controller', () => {
   const app = express();
@@ -18,8 +22,10 @@ describe('Ingredients Create Controller', () => {
   beforeAll(() => {
     createSpy = jest
       .spyOn(IngredientsRepository.prototype, 'create')
-      .mockImplementation(async (ingredient) => ({ id: 1, ...ingredient }));
-    validateSpy = jest.spyOn(IngredientsRepository.prototype, 'validate');
+      .mockResolvedValue(validResponse);
+    validateSpy = jest
+      .spyOn(IngredientsRepository.prototype, 'validate')
+      .mockReturnValue(true);
     app.use(express.json({ type: 'application/json' }));
     app.use('/', ingredientsRouter);
   });
@@ -33,56 +39,42 @@ describe('Ingredients Create Controller', () => {
   });
 
   it('should reject invalid payload with 400', async () => {
-    try {
-      const responses = await Promise.all([
-        request(app).post('/').send('Hello !'),
-        request(app).post('/').send({ kilo: 'asd' }),
-        request(app).post('/').send({ name: 123 }),
-        request(app).post('/').send({ name: {} }),
-      ]);
-      expect(validateSpy).toHaveBeenCalledTimes(responses.length);
-      expect(createSpy).not.toHaveBeenCalled();
-      responses.forEach((res) => {
-        expect(res.status).toEqual(400);
-      });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    validateSpy.mockReturnValueOnce(false);
+    const response = await request(app).post('/').send(validPayload);
+    expect(validateSpy).toHaveBeenCalledTimes(1);
+    expect(validateSpy).toHaveBeenCalledWith(validPayload);
+    expect(validateSpy).toHaveReturnedWith(false);
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(response.status).toEqual(400);
   });
 
   it('should create an ingredient when called with valid payload', async () => {
-    try {
-      const response = await request(app).post('/').send({ name: 'apples' });
-      expect(response.status).toEqual(201);
-      expect(response.body.id).toEqual(1);
-      expect(response.body.name).toEqual('apples');
-      expect(validateSpy).toHaveBeenCalledTimes(1);
-      expect(createSpy).toHaveBeenCalledTimes(1);
-      expect(createSpy).toHaveBeenCalledWith({ name: 'apples' });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    const response = await request(app).post('/').send(validPayload);
+    expect(validateSpy).toHaveBeenCalledTimes(1);
+    expect(validateSpy).toHaveBeenCalledWith(validPayload);
+    expect(validateSpy).toHaveReturnedWith(true);
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(createSpy).toHaveBeenCalledWith(validPayload);
+    await expectResolvedValueMatch(createSpy, validResponse);
+    expect(response.status).toEqual(201);
+    expect(response.body).toMatchObject(validResponse);
   });
 
   it('should return 500 if anything throws', async () => {
-    try {
-      validateSpy.mockImplementationOnce((_: Ingredient) => {
-        throw new Error('Intentional validation error');
-      });
-      createSpy.mockImplementationOnce((_: Ingredient) => {
-        throw new Error('Intentional creation error');
-      });
-      const responses = await Promise.all([
-        request(app).post('/').send({ name: 'apples' }),
-        request(app).post('/').send({ name: 'apples' }),
-      ]);
-      expect(validateSpy).toHaveBeenCalledTimes(2);
-      expect(createSpy).toHaveBeenCalledTimes(1);
-      responses.forEach((res) => {
-        expect(res.status).toEqual(500);
-      });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+    validateSpy.mockImplementationOnce((_) => {
+      throw new Error('Intentional validation error');
+    });
+    createSpy.mockImplementationOnce((_) => {
+      throw new Error('Intentional creation error');
+    });
+    const responses = await Promise.all([
+      request(app).post('/').send({ name: 'apples' }),
+      request(app).post('/').send({ name: 'apples' }),
+    ]);
+    expect(validateSpy).toHaveBeenCalledTimes(2);
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    responses.forEach((res) => {
+      expect(res.status).toEqual(500);
+    });
   });
 });

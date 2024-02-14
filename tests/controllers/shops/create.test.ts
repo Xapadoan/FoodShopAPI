@@ -7,6 +7,7 @@ import {
   ShopsRepository,
 } from '../../../src/repo/ShopsRepository';
 import { Entry } from '../../../src/repo/Repository';
+import { expectResolvedValueMatch } from '../../utils';
 
 const validShop = {
   name: 'I Got Ham !',
@@ -41,12 +42,13 @@ describe('Shops Create Controller', () => {
   beforeAll(() => {
     createSpy = jest
       .spyOn(ShopsRepository.prototype, 'createWithStaff')
-      .mockImplementation(async ({ shop, staff }) => ({
-        shop: { ...shop, id: 1 },
-        staff: { ...staff, id: 1, shopId: 1 },
-      }));
-    validateSpy = jest.spyOn(ShopsRepository.prototype, 'validate');
-    validateStaffSpy = jest.spyOn(ShopsRepository.prototype, 'validateStaff');
+      .mockResolvedValue(validResponse);
+    validateSpy = jest
+      .spyOn(ShopsRepository.prototype, 'validate')
+      .mockReturnValue(true);
+    validateStaffSpy = jest
+      .spyOn(ShopsRepository.prototype, 'validateStaff')
+      .mockReturnValue(true);
     app.use(express.json({ type: 'application/json' }));
     app.use('/', shopsRouter);
   });
@@ -59,54 +61,30 @@ describe('Shops Create Controller', () => {
     jest.clearAllMocks();
   });
 
-  it('should reject with 400 when both shop and staff are invalid', async () => {
-    const responses = await Promise.all([
-      request(app).post('/').send('Hello !'),
-      request(app).post('/').send({}),
-      request(app).post('/').send({ shop: 'Hello !' }),
-      request(app).post('/').send({ staff: 'Hello !' }),
-    ]);
-    expect(
-      validateSpy.mock.calls.length + validateStaffSpy.mock.calls.length
-    ).toBeGreaterThanOrEqual(responses.length);
-    expect(validateSpy).not.toHaveReturnedWith(true);
-    expect(validateStaffSpy).not.toHaveReturnedWith(true);
-    expect(createSpy).not.toHaveBeenCalled();
-    responses.forEach((res) => {
-      expect(res.status).toEqual(400);
-    });
-  });
-
   it('should reject with 400 when shop is valid and staff is invalid', async () => {
-    const responses = await Promise.all([
-      request(app).post('/').send({ shop: validShop }),
-      request(app).post('/').send({ shop: validShop, staff: 'Hello !' }),
-    ]);
+    validateSpy.mockReturnValueOnce(true);
+    validateStaffSpy.mockReturnValueOnce(false);
+    const response = await request(app).post('/');
     expect(
       validateSpy.mock.calls.length + validateStaffSpy.mock.calls.length
-    ).toBeGreaterThanOrEqual(responses.length);
+    ).toBeGreaterThanOrEqual(1);
     expect(validateSpy).not.toHaveReturnedWith(false);
     expect(validateStaffSpy).not.toHaveReturnedWith(true);
     expect(createSpy).not.toHaveBeenCalled();
-    responses.forEach((res) => {
-      expect(res.status).toEqual(400);
-    });
+    expect(response.status).toEqual(400);
   });
 
   it('should reject with 400 when shop is invalid and staff is valid', async () => {
-    const responses = await Promise.all([
-      request(app).post('/').send({ staff: validStaff }),
-      request(app).post('/').send({ staff: validStaff, shop: 'Hello !' }),
-    ]);
+    validateSpy.mockReturnValueOnce(false);
+    validateStaffSpy.mockReturnValueOnce(true);
+    const response = await request(app).post('/');
     expect(
       validateSpy.mock.calls.length + validateStaffSpy.mock.calls.length
-    ).toBeGreaterThanOrEqual(responses.length);
+    ).toBeGreaterThanOrEqual(1);
     expect(validateSpy).not.toHaveReturnedWith(true);
     expect(validateStaffSpy).not.toHaveReturnedWith(false);
     expect(createSpy).not.toHaveBeenCalled();
-    responses.forEach((res) => {
-      expect(res.status).toEqual(400);
-    });
+    expect(response.status).toEqual(400);
   });
 
   it('should create a shop and first staff when called with valid payload', async () => {
@@ -124,6 +102,7 @@ describe('Shops Create Controller', () => {
       shop: validShop,
       staff: validStaff,
     });
+    await expectResolvedValueMatch(createSpy, validResponse);
     expect(response.status).toEqual(201);
     expect(response.body).toMatchObject(validResponse);
   });
