@@ -1,6 +1,6 @@
 import 'express';
 import { Entry } from '@repo/Repository';
-import { Staff } from '@repo/StaffRepository';
+import { Staff } from '@repo/StaffsRepository';
 
 declare module 'express' {
   export interface Request {

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import authClient from '@lib/auth';
-import { StaffRepository } from '@repo/StaffRepository';
+import { StaffsRepository } from '@repo/StaffsRepository';
 
 export const initReset = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const staffRepo = new StaffRepository();
+    const staffRepo = new StaffsRepository();
     const staff = await staffRepo.read({ email });
     if (!staff) {
       return res.status(404).json({ error: 'Staff not found' });

@@ -1,4 +1,4 @@
-import { StaffRepository } from '@repo/StaffRepository';
+import { StaffsRepository } from '@repo/StaffsRepository';
 import { Request, Response } from 'express';
 
 export async function readAll(req: Request, res: Response) {
@@ -6,7 +6,7 @@ export async function readAll(req: Request, res: Response) {
     if (!req.staff) {
       return res.status(401).json({ error: 'Missing Authentication' });
     }
-    const staffRepo = new StaffRepository();
+    const staffRepo = new StaffsRepository();
     const shops = await staffRepo.readAllShops(req.staff.id);
     return res.json(shops);
   } catch (error) {

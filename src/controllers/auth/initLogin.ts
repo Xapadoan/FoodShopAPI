@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import authClient from '@lib/auth';
 import { Entry } from '@repo/Repository';
-import { Staff, StaffRepository } from '@repo/StaffRepository';
+import { Staff, StaffsRepository } from '@repo/StaffsRepository';
 import { HTTPError } from '@lib/http';
 import {
   RestoreInitServerOutput,
@@ -27,7 +27,7 @@ export const initLogin = async (
       return res.status(400).json({ error: 'Bad Body' });
     }
     const { email } = req.body;
-    const staffRepo = new StaffRepository();
+    const staffRepo = new StaffsRepository();
     const staff = await staffRepo.read({ email });
     if (!staff) {
       return res.status(404).json({ error: 'Staff not found' });

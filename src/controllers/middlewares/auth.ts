@@ -1,6 +1,6 @@
 import authClient from '@lib/auth';
 import { NextFunction, Request, Response } from 'express';
-import { StaffRepository } from '@repo/StaffRepository';
+import { StaffsRepository } from '@repo/StaffsRepository';
 
 export async function staffAuthMiddleware(
   req: Request,
@@ -16,7 +16,7 @@ export async function staffAuthMiddleware(
     if (!staffId) {
       return res.status(401).json({ error: 'Missing Authentication' });
     }
-    const staffRepo = new StaffRepository();
+    const staffRepo = new StaffsRepository();
     const staff = await staffRepo.read({ id: Number(staffId) });
     if (!staff) {
       return res.status(403).json({ error: 'Unauthorized' });

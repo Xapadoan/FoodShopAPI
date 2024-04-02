@@ -6,7 +6,7 @@ export type Staff = {
   email: string;
 };
 
-export class StaffRepository extends Repository<Staff> {
+export class StaffsRepository extends Repository<Staff> {
   protected pageLength = 50;
 
   public async create(staff: Staff): Promise<Entry<Staff>> {
@@ -50,6 +50,7 @@ export class StaffRepository extends Repository<Staff> {
   public validate(object: any): object is Staff {
     if (typeof object !== 'object') return false;
     if (typeof object['name'] !== 'string') return false;
+    if (typeof object['email'] !== 'string') return false;
     return true;
   }
 }
