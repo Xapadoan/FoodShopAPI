@@ -24,7 +24,7 @@ export class StaffsRepository extends Repository<Staff> {
     search: Partial<Entry<Staff>>
   ): Promise<Entry<Staff> | undefined> {
     if (!search.id && !search.email && !search.name) return;
-    const staffQuery = knex<Entry<Staff>>('staffs').select('*').first();
+    const staffQuery = knex<Entry<Staff>>('staffs').select('*');
     if (search.id) {
       staffQuery.where({ id: search.id });
     }
@@ -34,7 +34,7 @@ export class StaffsRepository extends Repository<Staff> {
     if (search.email) {
       staffQuery.where({ email: search.email });
     }
-    const staff = await staffQuery;
+    const staff = await staffQuery.first();
     return staff;
   }
 
