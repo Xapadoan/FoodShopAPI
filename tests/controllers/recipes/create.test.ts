@@ -4,10 +4,7 @@ import recipesRouter from '../../../src/controllers/recipes';
 import { IngredientsRepository } from '../../../src/repo/IngredientsRepository';
 import { Recipe, RecipesRepository } from '../../../src/repo/RecipesRepository';
 import { Entry } from '../../../src/repo/Repository';
-import {
-  expectResolvedValueEquals,
-  expectResolvedValueMatch,
-} from '../../utils';
+import { expectResolved } from '../../utils';
 
 const validRecipe = {
   name: 'n',
@@ -73,7 +70,7 @@ describe('Recipes Create Controller', () => {
     expect(checkIngredientsSpy).toHaveBeenCalledWith(
       validRecipe.ingredients.map(({ id }) => id)
     );
-    await expectResolvedValueEquals(checkIngredientsSpy, false);
+    expectResolved(checkIngredientsSpy).toEqual(false);
     expect(createSpy).not.toHaveBeenCalled();
     expect(response.status).toEqual(400);
   });
@@ -87,10 +84,10 @@ describe('Recipes Create Controller', () => {
     expect(checkIngredientsSpy).toHaveBeenCalledWith(
       validRecipe.ingredients.map(({ id }) => id)
     );
-    await expectResolvedValueEquals(checkIngredientsSpy, true);
+    expectResolved(checkIngredientsSpy).toEqual(true);
     expect(createSpy).toHaveBeenCalledTimes(1);
     expect(createSpy).toHaveBeenCalledWith(validRecipe);
-    await expectResolvedValueMatch(createSpy, validRecipe);
+    expectResolved(createSpy).toMatchObject(validRecipe);
     expect(response.status).toEqual(201);
     expect(response.body).toMatchObject(validResponse);
   });
