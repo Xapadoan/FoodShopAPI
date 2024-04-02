@@ -71,12 +71,4 @@ export class ShopsRepository extends Repository<Shop> {
     if (typeof object['address'] !== 'string') return false;
     return true;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public validateStaff(object: any): object is Staff {
-    if (typeof object !== 'object') return false;
-    if (typeof object['name'] !== 'string') return false;
-    if (typeof object['apiKey'] !== 'string') return false;
-    return true;
-  }
 }
