@@ -35,7 +35,7 @@ export const initLogin = async (
     const client = authClient();
     const initResponse = await client.initRestore({ email });
     if (!initResponse) {
-      return res.status(500).json({ error: 'Failed to init login' });
+      throw new Error('Failed to init login');
     }
     return res.json({ id: staff.id, ...initResponse });
   } catch (error) {
