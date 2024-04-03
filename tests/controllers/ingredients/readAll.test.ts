@@ -6,10 +6,7 @@ import {
   IngredientsRepository,
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
-import {
-  expectResolvedValueEquals,
-  expectResolvedValueMatch,
-} from '../../utils';
+import { expectResolved } from '../../utils';
 
 describe('Ingredients Read All Controller', () => {
   const listResults = [
@@ -54,7 +51,7 @@ describe('Ingredients Read All Controller', () => {
     const response = await request(app).get('/');
     expect(listSpy).toHaveBeenCalledTimes(1);
     expect(listSpy).toHaveBeenCalledWith({ name: '', page: 0 });
-    await expectResolvedValueMatch(listSpy, listResults);
+    expectResolved(listSpy).toMatchObject(listResults);
     expect(response.status).toEqual(200);
     expect(response.body).toMatchObject({
       page: 0,
@@ -85,7 +82,7 @@ describe('Ingredients Read All Controller', () => {
     listSpy.mockResolvedValueOnce([]);
     const response = await request(app).get('/');
     expect(listSpy).toHaveBeenCalledTimes(1);
-    await expectResolvedValueEquals(listSpy, []);
+    expectResolved(listSpy).toEqual([]);
     expect(response.status).toEqual(200);
     expect(response.body).toMatchObject({
       page: 0,

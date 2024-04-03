@@ -10,21 +10,14 @@ export async function up(knex: Knex) {
   });
 
   await knex.schema
-    .createTable('staff', (table) => {
+    .createTable('staffs', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
-      table
-        .bigInteger('shop_id')
-        .unsigned()
-        .notNullable()
-        .index()
-        .references('id')
-        .inTable('shops')
-        .onDelete('cascade');
       table.string('name', 100).notNullable();
-      table.string('api_key', 255).notNullable();
+      table.string('email', 255).notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('NOW()'));
       table.dateTime('updated_at').notNullable().defaultTo(knex.raw('NOW()'));
     })
+
     .createTable('shops_stocks', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
       table
@@ -48,9 +41,30 @@ export async function up(knex: Knex) {
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('NOW()'));
       table.dateTime('updated_at').notNullable().defaultTo(knex.raw('NOW()'));
     });
+
+  await knex.schema.createTable('shops_staffs', (table) => {
+    table.bigIncrements('id', { primaryKey: true }).unsigned();
+    table
+      .bigInteger('shop_id')
+      .unsigned()
+      .notNullable()
+      .index()
+      .references('id')
+      .inTable('shops')
+      .onDelete('cascade');
+    table
+      .bigInteger('staff_id')
+      .unsigned()
+      .notNullable()
+      .index()
+      .references('id')
+      .inTable('staffs')
+      .onDelete('cascade');
+  });
 }
 
 export async function down(knex: Knex) {
-  await knex.schema.dropTable('shop_stocks').dropTable('shop_staff');
+  await knex.schema.dropTable('shops_staffs');
+  await knex.schema.dropTable('staffs').dropTable('shops_stocks');
   await knex.schema.dropTable('shops');
 }

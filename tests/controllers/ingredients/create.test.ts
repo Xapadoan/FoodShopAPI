@@ -6,7 +6,7 @@ import {
   IngredientsRepository,
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
-import { expectResolvedValueMatch } from '../../utils';
+import { expectResolved } from '../../utils';
 
 const validPayload = { name: 'apples ' };
 const validResponse = { id: 1, ...validPayload };
@@ -55,7 +55,7 @@ describe('Ingredients Create Controller', () => {
     expect(validateSpy).toHaveReturnedWith(true);
     expect(createSpy).toHaveBeenCalledTimes(1);
     expect(createSpy).toHaveBeenCalledWith(validPayload);
-    await expectResolvedValueMatch(createSpy, validResponse);
+    expectResolved(createSpy).toMatchObject(validResponse);
     expect(response.status).toEqual(201);
     expect(response.body).toMatchObject(validResponse);
   });

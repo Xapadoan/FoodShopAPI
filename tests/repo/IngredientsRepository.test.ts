@@ -89,7 +89,9 @@ describe('Ingredients Repository', () => {
   });
 
   it('should be able to check for ingredients existence', async () => {
-    expect(await repository.checkExistence([1, 2, 3])).toBeTruthy();
-    expect(await repository.checkExistence([1, 2, 42])).toBeFalsy();
+    const check1 = await repository.checkExistence([1, 2, 3]);
+    expect(check1).toBeTruthy();
+    const check2 = await repository.checkExistence([1, 2, 42]);
+    expect(check2).toBeFalsy();
   });
 });

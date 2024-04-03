@@ -3,10 +3,7 @@ import request from 'supertest';
 import recipesRouter from '../../../src/controllers/recipes';
 import { Recipe, RecipesRepository } from '../../../src/repo/RecipesRepository';
 import { Entry } from '../../../src/repo/Repository';
-import {
-  expectResolvedValueEquals,
-  expectResolvedValueMatch,
-} from '../../utils';
+import { expectResolved } from '../../utils';
 
 describe('Recipes Read Controller', () => {
   const readResult = {
@@ -57,7 +54,7 @@ describe('Recipes Read Controller', () => {
     const response = await request(app).get('/42');
     expect(readSpy).toHaveBeenCalledTimes(1);
     expect(readSpy).toHaveBeenCalledWith({ id: 42 });
-    await expectResolvedValueEquals(readSpy, undefined);
+    expectResolved(readSpy).toBeUndefined();
     expect(response.status).toEqual(404);
   });
 
@@ -65,7 +62,7 @@ describe('Recipes Read Controller', () => {
     const response = await request(app).get('/1');
     expect(readSpy).toHaveBeenCalledTimes(1);
     expect(readSpy).toHaveBeenCalledWith({ id: 1 });
-    await expectResolvedValueMatch(readSpy, readResult);
+    expectResolved(readSpy).toMatchObject(readResult);
     expect(response.status).toEqual(200);
     expect(response.body).toMatchObject(readResult);
   });

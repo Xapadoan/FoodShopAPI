@@ -6,10 +6,7 @@ import {
   IngredientsRepository,
 } from '../../../src/repo/IngredientsRepository';
 import { Entry } from '../../../src/repo/Repository';
-import {
-  expectResolvedValueEquals,
-  expectResolvedValueMatch,
-} from '../../utils';
+import { expectResolved } from '../../utils';
 
 describe('Ingredients Read Controller', () => {
   const readResult = {
@@ -49,7 +46,7 @@ describe('Ingredients Read Controller', () => {
     const response = await request(app).get('/42');
     expect(readSpy).toHaveBeenCalledTimes(1);
     expect(readSpy).toHaveBeenCalledWith({ id: 42 });
-    await expectResolvedValueEquals(readSpy, undefined);
+    expectResolved(readSpy).toBeUndefined();
     expect(response.status).toEqual(404);
   });
 
@@ -57,7 +54,7 @@ describe('Ingredients Read Controller', () => {
     const response = await request(app).get('/1');
     expect(readSpy).toHaveBeenCalledTimes(1);
     expect(readSpy).toHaveBeenCalledWith({ id: 1 });
-    await expectResolvedValueMatch(readSpy, readResult);
+    expectResolved(readSpy).toMatchObject(readResult);
     expect(response.status).toEqual(200);
     expect(response.body).toMatchObject(readResult);
   });

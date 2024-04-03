@@ -1,4 +1,8 @@
-export type Entry<T> = { id: number } & T;
+export type Entry<T> = {
+  id: number;
+  created_at?: string;
+  updated_at?: string;
+} & T;
 
 export abstract class Repository<T extends Record<string, unknown>> {
   protected abstract pageLength: number;
