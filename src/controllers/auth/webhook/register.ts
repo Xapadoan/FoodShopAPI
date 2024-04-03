@@ -12,7 +12,6 @@ export async function onRegister(
 ) {
   try {
     const client = authClient();
-    console.log(req.body);
     const response = await client.onRegisterUpload(req.body);
     return res.json(response);
   } catch (error) {

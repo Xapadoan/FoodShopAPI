@@ -2,6 +2,10 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDirs": ["src", "tests"],
+    "paths": {
+      "@mocks/*": ["tests/mocks/*"],
+      "@repo/*": ["src/repo/*"],
+      "@lib/*": ["src/lib/*"]
+    }
   },
-  "include": ["tests/**/*.ts", "src/**/*.ts"]
 }

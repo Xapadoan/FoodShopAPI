@@ -24,7 +24,7 @@ export const initRegister = async (
       email: createdStaff.email,
     });
     if (!initResponse) {
-      return res.status(500).json({ error: 'Failed to init registration' });
+      throw new Error('Failed to init registration');
     }
     return res.status(201).json({ ...createdStaff, ...initResponse });
   } catch (error) {
