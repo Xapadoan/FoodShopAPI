@@ -38,14 +38,6 @@ export class StaffsRepository extends Repository<Staff> {
     return staff;
   }
 
-  public async readAllShops(staffId: number) {
-    const shops = await knex('shops_staffs')
-      .innerJoin('shops', 'shops.id', 'shops_staffs.shop_id')
-      .select('shops.*')
-      .where({ 'shops_staffs.staff_id': staffId });
-    return shops;
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public validate(object: any): object is Staff {
     if (typeof object !== 'object') return false;

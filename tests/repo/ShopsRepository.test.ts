@@ -1,17 +1,20 @@
-import { expectResolved, validShopEntry, validShop } from '../utils';
+import {
+  expectResolved,
+  validShopEntry,
+  validShop,
+  validStaffEntry,
+} from '../utils';
 
-const mockKnexInsert = jest.fn().mockResolvedValue([validShopEntry.id]);
-const mockKnexSelect = jest.fn().mockReturnThis();
-const mockKnexFirst = jest.fn().mockResolvedValue(validShopEntry);
-const mockKnexWhere = jest.fn().mockReturnThis();
-const mockKnexInnerJoin = jest.fn().mockReturnThis();
-const mockKnex = jest.fn(() => ({
-  insert: mockKnexInsert,
-  select: mockKnexSelect,
-  where: mockKnexWhere,
-  first: mockKnexFirst,
-  innerJoin: mockKnexInnerJoin,
-}));
+const qb = {
+  insert: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  first: jest.fn().mockReturnThis(),
+  innerJoin: jest.fn().mockReturnThis(),
+  offset: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+};
+const mockKnex = jest.fn().mockReturnValue(qb);
 
 jest.mock('knex', () => jest.fn(() => mockKnex));
 
@@ -41,22 +44,24 @@ describe('Shops Repository', () => {
   });
 
   it('should be able to read by id', async () => {
+    qb.first.mockResolvedValueOnce(validShopEntry);
     const shop = await repository.read({ id: validShopEntry.id });
     expect(mockKnex).toHaveBeenCalledWith('shops');
-    expect(mockKnexSelect).toHaveBeenCalled();
-    expect(mockKnexWhere).toHaveBeenCalledWith({ id: validShopEntry.id });
-    expect(mockKnexFirst).toHaveBeenCalled();
-    expectResolved(mockKnexFirst).toMatchObject(validShopEntry);
+    expect(qb.select).toHaveBeenCalled();
+    expect(qb.where).toHaveBeenCalledWith({ id: validShopEntry.id });
+    expect(qb.first).toHaveBeenCalled();
+    expectResolved(qb.first).toMatchObject(validShopEntry);
     expect(shop).toMatchObject(validShopEntry);
   });
 
   it('should be able to read by name', async () => {
+    qb.first.mockResolvedValueOnce(validShopEntry);
     const shop = await repository.read({ name: validShop.name });
     expect(mockKnex).toHaveBeenCalledWith('shops');
-    expect(mockKnexSelect).toHaveBeenCalled();
-    expect(mockKnexWhere).toHaveBeenCalledWith({ name: validShop.name });
-    expect(mockKnexFirst).toHaveBeenCalled();
-    expectResolved(mockKnexFirst).toMatchObject(validShopEntry);
+    expect(qb.select).toHaveBeenCalled();
+    expect(qb.where).toHaveBeenCalledWith({ name: validShop.name });
+    expect(qb.first).toHaveBeenCalled();
+    expectResolved(qb.first).toMatchObject(validShopEntry);
     expect(shop).toMatchObject(validShopEntry);
   });
 
@@ -67,21 +72,41 @@ describe('Shops Repository', () => {
   });
 
   it('should return undefined when reading a non-existing shop', async () => {
-    mockKnexFirst.mockResolvedValueOnce(undefined);
+    qb.first.mockResolvedValueOnce(undefined);
     const shop = await repository.read({ id: 42 });
     expect(mockKnex).toHaveBeenCalledWith('shops');
-    expect(mockKnexSelect).toHaveBeenCalled();
-    expect(mockKnexWhere).toHaveBeenCalledWith({ id: 42 });
-    expect(mockKnexFirst).toHaveBeenCalled();
-    expectResolved(mockKnexFirst).toBeUndefined();
+    expect(qb.select).toHaveBeenCalled();
+    expect(qb.where).toHaveBeenCalledWith({ id: 42 });
+    expect(qb.first).toHaveBeenCalled();
+    expectResolved(qb.first).toBeUndefined();
     expect(shop).toBeUndefined();
   });
 
   it('should be able to create a shop', async () => {
+    qb.insert.mockResolvedValueOnce([validShopEntry.id]);
     const shop = await repository.create(validShop);
     expect(mockKnex).toHaveBeenCalledWith('shops');
-    expect(mockKnexInsert).toHaveBeenCalledWith(validShop);
-    expectResolved(mockKnexInsert).toEqual([validShopEntry.id]);
+    expect(qb.insert).toHaveBeenCalledWith(validShop);
+    expectResolved(qb.insert).toEqual([validShopEntry.id]);
     expect(shop).toMatchObject(validShopEntry);
+  });
+
+  it('should be able to list the shops involving a certain staff', async () => {
+    qb.limit.mockResolvedValueOnce([validShopEntry]);
+    const shops = await repository.listStaffShops(
+      validStaffEntry.id,
+      { name: '' },
+      0
+    );
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(qb.innerJoin).toHaveBeenCalledWith(
+      'shops_staffs',
+      'shops.id',
+      'shops_staffs.shop_id'
+    );
+    expect(qb.select).toHaveBeenCalled();
+    expect(qb.where).toHaveBeenCalledTimes(2);
+    expectResolved(qb.limit).toEqual([validShopEntry]);
+    expect(shops).toEqual([validShopEntry]);
   });
 });
