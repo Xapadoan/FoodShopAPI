@@ -1,16 +1,30 @@
-import knex from '../../src/data';
+import { expectResolved, validShopEntry, validShop } from '../utils';
+
+const mockKnexInsert = jest.fn().mockResolvedValue([validShopEntry.id]);
+const mockKnexSelect = jest.fn().mockReturnThis();
+const mockKnexFirst = jest.fn().mockResolvedValue(validShopEntry);
+const mockKnexWhere = jest.fn().mockReturnThis();
+const mockKnexInnerJoin = jest.fn().mockReturnThis();
+const mockKnex = jest.fn(() => ({
+  insert: mockKnexInsert,
+  select: mockKnexSelect,
+  where: mockKnexWhere,
+  first: mockKnexFirst,
+  innerJoin: mockKnexInnerJoin,
+}));
+
+jest.mock('knex', () => jest.fn(() => mockKnex));
+
 import { ShopsRepository } from '../../src/repo/ShopsRepository';
 import { Repository } from '../../src/repo/Repository';
-import { values as allShops } from '../seeds/shops';
-
-const validShop = {
-  name: 'Fresh Veggies',
-  address: '4 main street 93100 Gotham',
-};
 
 describe('Shops Repository', () => {
-  beforeAll(async () => {
-    await knex.seed.run();
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  afterAll(() => {
+    jest.restoreAllMocks();
+    jest.resetModules();
   });
 
   const repository = new ShopsRepository();
@@ -27,24 +41,39 @@ describe('Shops Repository', () => {
   });
 
   it('should be able to read by id', async () => {
-    const shop = await repository.read({ id: allShops[0].id });
-    expect(shop).toBeTruthy();
-    expect(shop).toMatchObject(allShops[0]);
+    const shop = await repository.read({ id: validShopEntry.id });
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(mockKnexSelect).toHaveBeenCalled();
+    expect(mockKnexWhere).toHaveBeenCalledWith({ id: validShopEntry.id });
+    expect(mockKnexFirst).toHaveBeenCalled();
+    expectResolved(mockKnexFirst).toMatchObject(validShopEntry);
+    expect(shop).toMatchObject(validShopEntry);
   });
 
   it('should be able to read by name', async () => {
-    const shop = await repository.read({ name: allShops[0].name });
-    expect(shop).toBeTruthy();
-    expect(shop).toMatchObject(allShops[0]);
+    const shop = await repository.read({ name: validShop.name });
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(mockKnexSelect).toHaveBeenCalled();
+    expect(mockKnexWhere).toHaveBeenCalledWith({ name: validShop.name });
+    expect(mockKnexFirst).toHaveBeenCalled();
+    expectResolved(mockKnexFirst).toMatchObject(validShopEntry);
+    expect(shop).toMatchObject(validShopEntry);
   });
 
   it('should return undefined when no search is provided to read', async () => {
     const shop = await repository.read({});
+    expect(mockKnex).not.toHaveBeenCalled();
     expect(shop).toBeUndefined();
   });
 
   it('should return undefined when reading a non-existing shop', async () => {
+    mockKnexFirst.mockResolvedValueOnce(undefined);
     const shop = await repository.read({ id: 42 });
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(mockKnexSelect).toHaveBeenCalled();
+    expect(mockKnexWhere).toHaveBeenCalledWith({ id: 42 });
+    expect(mockKnexFirst).toHaveBeenCalled();
+    expectResolved(mockKnexFirst).toBeUndefined();
     expect(shop).toBeUndefined();
   });
 });
