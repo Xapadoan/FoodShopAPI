@@ -1,5 +1,6 @@
 import { Entry } from '@repo/Repository';
 import { Staff } from '@repo/StaffsRepository';
+import { Shop } from '@repo/ShopsRepository';
 
 export function expectResolved(spy: jest.SpyInstance) {
   return expect(spy.mock.results[0]?.value).resolves;
@@ -16,5 +17,15 @@ export const validStaff: Staff = {
 
 export const validStaffEntry: Entry<Staff> = {
   ...validStaff,
+  id: 1,
+};
+
+export const validShop: Shop = {
+  name: 'La Cantina',
+  address: '5th Federation Avenue NY City',
+};
+
+export const validShopEntry: Entry<Shop> = {
+  ...validShop,
   id: 1,
 };
