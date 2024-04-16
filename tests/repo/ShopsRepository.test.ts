@@ -91,6 +91,15 @@ describe('Shops Repository', () => {
     expect(shop).toMatchObject(validShopEntry);
   });
 
+  it('should be able to link a staff to a shop', async () => {
+    await repository.addStaff(validShopEntry.id, validStaffEntry.id);
+    expect(mockKnex).toHaveBeenCalledWith('shops_staffs');
+    expect(qb.insert).toHaveBeenCalledWith({
+      staff_id: validStaffEntry.id,
+      shop_id: validShopEntry.id,
+    });
+  });
+
   it('should be able to list the shops involving a certain staff', async () => {
     qb.limit.mockResolvedValueOnce([validShopEntry]);
     const shops = await repository.listStaffShops(
@@ -108,5 +117,23 @@ describe('Shops Repository', () => {
     expect(qb.where).toHaveBeenCalledTimes(2);
     expectResolved(qb.limit).toEqual([validShopEntry]);
     expect(shops).toEqual([validShopEntry]);
+  });
+
+  it('should be able to read a shop for a given staff', async () => {
+    qb.first.mockResolvedValueOnce(validShopEntry);
+    const shop = await repository.readStaffShop(
+      validStaffEntry.id,
+      validShopEntry.id
+    );
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(qb.innerJoin).toHaveBeenCalledWith(
+      'shops_staffs',
+      'shops.id',
+      'shops_staffs.shop_id'
+    );
+    expect(qb.select).toHaveBeenCalled();
+    expect(qb.first).toHaveBeenCalled();
+    expectResolved(qb.first).toMatchObject(validShopEntry);
+    expect(shop).toMatchObject(validShopEntry);
   });
 });
