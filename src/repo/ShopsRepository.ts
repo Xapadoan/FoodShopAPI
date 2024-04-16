@@ -25,6 +25,21 @@ export class ShopsRepository extends Repository<Shop> {
     return result;
   }
 
+  public async listStaffShops(
+    staffId: number,
+    { name }: Partial<Shop>,
+    page: number
+  ): Promise<Entry<Shop>[]> {
+    const shops = await knex<Entry<Shop>>('shops')
+      .innerJoin('shops_staffs', 'shops.id', 'shops_staffs.shop_id')
+      .select('shops.*')
+      .where({ 'shops_staffs.staff_id': staffId })
+      .where('name', 'LIKE', `%${name}%`)
+      .offset(page * this.pageLength)
+      .limit(this.pageLength);
+    return shops;
+  }
+
   public async create(shop: Shop): Promise<Entry<Shop>> {
     const [id] = await knex('shops').insert({
       name: shop.name,
