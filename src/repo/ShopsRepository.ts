@@ -55,6 +55,18 @@ export class ShopsRepository extends Repository<Shop> {
     await knex('shops_staffs').insert({ staff_id: staffId, shop_id: shopId });
   }
 
+  public async readStaffShop(
+    staffId: number,
+    shopId: number
+  ): Promise<Entry<Shop> | undefined> {
+    const shop = await knex<Entry<Shop>>('shops')
+      .innerJoin('shops_staffs', 'shops.id', 'shops_staffs.shop_id')
+      .select('shops.*')
+      .where({ 'shops_staffs.staff_id': staffId, 'shops.id': shopId })
+      .first();
+    return shop;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public validate(object: any): object is Shop {
     if (typeof object !== 'object') return false;
