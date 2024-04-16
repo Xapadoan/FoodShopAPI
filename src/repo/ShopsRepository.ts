@@ -51,6 +51,10 @@ export class ShopsRepository extends Repository<Shop> {
     };
   }
 
+  public async addStaff(shopId: number, staffId: number) {
+    await knex('shops_staffs').insert({ staff_id: staffId, shop_id: shopId });
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public validate(object: any): object is Shop {
     if (typeof object !== 'object') return false;
