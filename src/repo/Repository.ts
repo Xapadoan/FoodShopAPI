@@ -13,7 +13,10 @@ export abstract class Repository<T extends Record<string, unknown>> {
     search: Record<string, unknown>,
     page: number
   ): Promise<Partial<Entry<T>>[]>;
-  public async update?(id: number, item: Partial<T>): Promise<Entry<T>>;
+  public async update?(
+    id: number,
+    item: Partial<T>
+  ): Promise<Entry<T> | undefined>;
   public async delete?(id: number): Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public abstract validate(object: any): object is T;
