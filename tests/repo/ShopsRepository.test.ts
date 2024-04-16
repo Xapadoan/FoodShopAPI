@@ -76,4 +76,12 @@ describe('Shops Repository', () => {
     expectResolved(mockKnexFirst).toBeUndefined();
     expect(shop).toBeUndefined();
   });
+
+  it('should be able to create a shop', async () => {
+    const shop = await repository.create(validShop);
+    expect(mockKnex).toHaveBeenCalledWith('shops');
+    expect(mockKnexInsert).toHaveBeenCalledWith(validShop);
+    expectResolved(mockKnexInsert).toEqual([validShopEntry.id]);
+    expect(shop).toMatchObject(validShopEntry);
+  });
 });
