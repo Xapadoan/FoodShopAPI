@@ -17,8 +17,7 @@ export async function up(knex: Knex) {
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('NOW()'));
       table.dateTime('updated_at').notNullable().defaultTo(knex.raw('NOW()'));
     })
-
-    .createTable('shops_stocks', (table) => {
+    .createTable('stocks', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
       table
         .bigInteger('shop_id')
@@ -36,6 +35,7 @@ export async function up(knex: Knex) {
         .references('id')
         .inTable('ingredients')
         .onDelete('cascade');
+      table.unique(['shop_id', 'ingredient_id']);
       table.integer('quantity').notNullable();
       table.integer('unit_price').notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('NOW()'));
