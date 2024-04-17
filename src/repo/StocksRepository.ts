@@ -1,4 +1,4 @@
-import knex from 'src/data';
+import knex from '../data';
 import { Repository, Entry } from './Repository';
 
 export type Stock = {
@@ -12,26 +12,44 @@ export class StocksRepository extends Repository<Stock> {
   protected pageLength = 100;
 
   public async create(stock: Stock): Promise<Entry<Stock>> {
-    const [id] = await knex('stocks').insert({
-      shop_id: stock.shopId,
-      ingredient_id: stock.ingredientId,
-      quantity: stock.quantity,
-      unit_price: stock.unitPrice * 100,
+    const createdStock = await knex.transaction(async (trx) => {
+      const existing = await trx('stocks')
+        .select(
+          'id',
+          'shop_id AS shopId',
+          'ingredient_id AS ingredientId',
+          'quantity',
+          knex.raw('unit_price / 100 AS unitPrice'),
+          'created_at',
+          'updated_at'
+        )
+        .where({ shop_id: stock.shopId, ingredient_id: stock.ingredientId })
+        .first();
+      if (existing) {
+        return existing;
+      }
+      const [id] = await trx('stocks').insert({
+        shop_id: stock.shopId,
+        ingredient_id: stock.ingredientId,
+        quantity: stock.quantity,
+        unit_price: stock.unitPrice * 100,
+      });
+      return {
+        id,
+        ...stock,
+      };
     });
-    return {
-      id,
-      ...stock,
-    };
+    return createdStock;
   }
 
   public async update(
     id: number,
-    stock: Partial<Stock>
+    { unitPrice, quantity }: Partial<Stock>
   ): Promise<Entry<Stock> | undefined> {
     await knex('stocks')
       .update({
-        quantity: stock.quantity,
-        unit_price: stock.unitPrice ? stock.unitPrice * 100 : undefined,
+        quantity,
+        unit_price: unitPrice ? unitPrice * 100 : undefined,
         updated_at: knex.raw('NOW()'),
       })
       .where({ id });
@@ -73,12 +91,10 @@ export class StocksRepository extends Repository<Stock> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public validate(object: any): object is Stock {
     if (typeof object !== 'object') return false;
+    if (typeof object['shopId'] !== 'number') return false;
     if (typeof object['ingredientId'] !== 'number') return false;
-    console.log('I OK');
     if (typeof object['quantity'] !== 'number') return false;
-    console.log('Q OK');
     if (typeof object['unitPrice'] !== 'number') return false;
-    console.log('U OK');
     return true;
   }
 }
