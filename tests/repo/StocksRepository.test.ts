@@ -46,6 +46,15 @@ describe('Shops Repository', () => {
         unitPrice: validStock.unitPrice,
       })
     ).toBeFalsy();
+    expect(
+      repository.validate({ ...validStock, ingredientId: 'Hello' })
+    ).toBeFalsy();
+    expect(
+      repository.validate({ ...validStock, quantity: 'Hello' })
+    ).toBeFalsy();
+    expect(
+      repository.validate({ ...validStock, unitPrice: 'Hello' })
+    ).toBeFalsy();
     expect(repository.validate(validStock)).toBeTruthy();
   });
 
@@ -88,7 +97,7 @@ describe('Shops Repository', () => {
     expect(insertHistory.length).toEqual(0);
   });
 
-  it('should be able to update an existing entry', async () => {
+  it("should be able to update an existing entry's quantity", async () => {
     const updatedStock = { quantity: 42 };
     const updatedStockEntry = { ...validStockEntry, quantity: 42 };
     dbTracker.on.update('stocks').response(undefined);
@@ -105,6 +114,41 @@ describe('Shops Repository', () => {
       updateHistory[0].sql.toLowerCase().indexOf('updated_at')
     ).not.toEqual(-1);
     expect(updateHistory[0].sql.toLowerCase().indexOf('now()')).not.toEqual(-1);
+
+    const selectHistory = dbTracker.history.select;
+    expect(selectHistory.length).toEqual(1);
+    expect(selectHistory[0].method).toEqual('select');
+    expect(selectHistory[0].bindings).toContainEqual(validStockEntry.id);
+  });
+
+  it("should be able to update an existing entry's unitPrice", async () => {
+    const updatedStock = { unitPrice: 42 };
+    const updatedStockEntry = { ...validStockEntry, unitPrice: 42 };
+    dbTracker.on.update('stocks').response(undefined);
+    dbTracker.on.select('stocks').response(updatedStockEntry);
+    const stock = await repository.update(validStockEntry.id, updatedStock);
+    expect(stock).toMatchObject(updatedStockEntry);
+
+    const updateHistory = dbTracker.history.update;
+    expect(updateHistory.length).toEqual(1);
+    expect(updateHistory[0].method).toEqual('update');
+    expect(updateHistory[0].bindings).toContainEqual(validStockEntry.id);
+    expect(updateHistory[0].bindings).toContainEqual(42 * 100);
+    expect(
+      updateHistory[0].sql.toLowerCase().indexOf('updated_at')
+    ).not.toEqual(-1);
+    expect(updateHistory[0].sql.toLowerCase().indexOf('now()')).not.toEqual(-1);
+
+    const selectHistory = dbTracker.history.select;
+    expect(selectHistory.length).toEqual(1);
+    expect(selectHistory[0].method).toEqual('select');
+    expect(selectHistory[0].bindings).toContainEqual(validStockEntry.id);
+  });
+
+  it('should be able to list stocks for a given shop', async () => {
+    dbTracker.on.select('stocks').response([validStockEntry]);
+    const stocks = await repository.list({ shopId: validStockEntry.shopId }, 0);
+    expect(stocks).toEqual([validStockEntry]);
 
     const selectHistory = dbTracker.history.select;
     expect(selectHistory.length).toEqual(1);
