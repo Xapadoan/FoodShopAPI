@@ -3,6 +3,7 @@ import { Staff } from '@repo/StaffsRepository';
 import { Shop } from '@repo/ShopsRepository';
 import { Ingredient } from '@repo/IngredientsRepository';
 import { Stock } from '@repo/StocksRepository';
+import { Recipe, RecipePreview } from '@repo/RecipesRepository';
 
 export function expectResolved(spy: jest.SpyInstance) {
   return expect(spy.mock.results[0]?.value).resolves;
@@ -52,3 +53,31 @@ export const validStockEntry: Entry<Stock> = {
   ...validStock,
   id: 1,
 };
+
+export const validRecipe: Recipe = {
+  name: 'Carrot Salad',
+  numberOfPeople: 4,
+  steps: [
+    { text: 'Peel the carrot', ranking: 1 },
+    { text: 'Grate them', ranking: 2 },
+  ],
+  ingredients: [{ id: validIngredientEntry.id, quantity: '2' }],
+};
+
+export const validRecipeEntry: Entry<Recipe> = {
+  ...validRecipe,
+  id: 1,
+};
+
+export const validRecipesList: Array<RecipePreview> = [
+  {
+    id: 1,
+    name: 'Carrot Salad',
+    numberOfPeople: 4,
+  },
+  {
+    id: 2,
+    name: 'Boiled Eggs',
+    numberOfPeople: 4,
+  },
+];
