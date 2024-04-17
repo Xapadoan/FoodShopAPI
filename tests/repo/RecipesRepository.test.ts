@@ -1,13 +1,25 @@
+import { createTracker, MockClient, Tracker } from 'knex-mock-client';
+import Knex from 'knex';
 import knex from '../../src/data';
-import { Recipe, RecipesRepository } from '../../src/repo/RecipesRepository';
-import { Repository, Entry } from '../../src/repo/Repository';
-import { values as allRecipes } from '../seeds/recipes';
-import { values as allRecipesIngredients } from '../seeds/recipes_ingredients';
-import { values as allSteps } from '../seeds/steps';
+
+jest.mock('../../src/data', () => Knex({ client: MockClient }));
+
+import { RecipesRepository } from '../../src/repo/RecipesRepository';
+import { Repository } from '../../src/repo/Repository';
+import { validRecipe, validRecipeEntry, validRecipesList } from '../utils';
 
 describe('Recipes Repository', () => {
-  beforeAll(async () => {
-    await knex.seed.run();
+  let dbTracker: Tracker;
+  beforeAll(() => {
+    dbTracker = createTracker(knex);
+  });
+  afterAll(() => {
+    jest.restoreAllMocks();
+    jest.resetModules();
+  });
+  afterEach(() => {
+    dbTracker.reset();
+    jest.clearAllMocks();
   });
   const repository = new RecipesRepository();
 
@@ -163,23 +175,52 @@ describe('Recipes Repository', () => {
   });
 
   it('should be able to create a recipe with existing ingredients', async () => {
-    const recipe = await repository.create({
-      name: 'Boiled eggs',
-      numberOfPeople: 4,
-      steps: [{ ranking: 1, text: 'I guess you can cook this by yourself' }],
-      ingredients: [{ id: 1, quantity: '4' }],
+    dbTracker.on.insert('recipes').response([validRecipeEntry.id]);
+    dbTracker.on.insert('steps').response([1]);
+    dbTracker.on.insert('recipes_ingredients').response([1]);
+    const recipe = await repository.create(validRecipe);
+    expect(recipe).toMatchObject(validRecipeEntry);
+
+    const insertHistory = dbTracker.history.insert;
+    expect(insertHistory.length).toEqual(3);
+
+    const insertRecipe = insertHistory.find((insert) =>
+      insert.sql.includes('recipes')
+    );
+    expect(insertRecipe).not.toBeUndefined();
+    expect(insertRecipe?.method).toEqual('insert');
+    expect(insertRecipe?.bindings).toContainEqual(validRecipe.name);
+    expect(insertRecipe?.bindings).toContainEqual(validRecipe.numberOfPeople);
+
+    const insertSteps = insertHistory.find((insert) =>
+      insert.sql.includes('steps')
+    );
+    expect(insertSteps).not.toBeUndefined();
+    expect(insertSteps?.method).toEqual('insert');
+    validRecipe.steps.forEach((step) => {
+      expect(insertSteps?.bindings).toContainEqual(step.ranking);
+      expect(insertSteps?.bindings).toContainEqual(step.text);
     });
-    expect(recipe).toBeTruthy();
-    expect(repository.validate(recipe)).toBeTruthy();
+
+    const insertIngredients = insertHistory.find((insert) =>
+      insert.sql.includes('recipes_ingredients')
+    );
+    expect(insertIngredients).not.toBeUndefined();
+    expect(insertIngredients?.method).toEqual('insert');
+    validRecipe.ingredients.forEach((ingredient) => {
+      expect(insertIngredients?.bindings).toContainEqual(ingredient.id);
+      expect(insertIngredients?.bindings).toContainEqual(ingredient.quantity);
+    });
   });
 
   it('should throw when creating a recipe with non-existing ingredients', async () => {
+    dbTracker.on
+      .insert('recipes_ingredients')
+      .simulateErrorOnce('Invalid Reference');
     try {
       await repository.create({
-        name: 'Boiled eggs',
-        numberOfPeople: 4,
-        steps: [{ ranking: 1, text: 'I guess you can cook this by yourself' }],
-        ingredients: [{ id: 42, quantity: '4' }],
+        ...validRecipe,
+        ingredients: [{ id: 42, quantity: '42' }],
       });
       expect(false).toBeTruthy();
     } catch (error) {
@@ -187,52 +228,64 @@ describe('Recipes Repository', () => {
     }
   });
 
-  it('should be able to list recipes', async () => {
-    try {
-      const expectedRecipes = allRecipes.map((recipe) => ({
-        ...recipe,
-        numberOfPeople: recipe.nb_people,
-      }));
-      const list = await repository.list({ name: '', page: 0 });
-      expectedRecipes.forEach((recipe) => {
-        const item = list.find((r) => r.id === recipe.id);
-        expect(item).not.toBeUndefined();
-        if (item) {
-          expect(recipe).toMatchObject(item);
-        }
-      });
-    } catch {
-      expect(false).toBeTruthy();
-    }
+  it('should be able to list recipes with name filter', async () => {
+    dbTracker.on.select('recipes').response(validRecipesList);
+    const list = await repository.list({ name: 'salad' }, 0);
+    expect(list).toMatchObject(validRecipesList);
+
+    const selectHistory = dbTracker.history.select;
+    expect(selectHistory.length).toEqual(1);
+    expect(selectHistory[0].method).toEqual('select');
+    expect(selectHistory[0].bindings).toContainEqual('%salad%');
+    expect(selectHistory[0].sql.toLowerCase()).toContain('like');
   });
 
   it('should return falsy result when trying to read a non-existing recipe', async () => {
+    dbTracker.on.select('recipes').response(undefined);
+    dbTracker.on.select('steps').response(undefined);
+    dbTracker.on.select('recipes_ingredients').response(undefined);
     const recipe = await repository.read({ id: 42 });
     expect(recipe).toBeUndefined();
   });
 
-  it('should be able to read an existing recipe', async () => {
-    try {
-      const expectedResult: Entry<Recipe> = {
-        id: allRecipes[0].id,
-        name: allRecipes[0].name,
-        numberOfPeople: allRecipes[0].nb_people,
-        steps: allSteps
-          .filter((step) => step.recipe_id === allRecipes[0].id)
-          .map((step) => ({ ranking: step.ranking, text: step.text })),
-        ingredients: allRecipesIngredients
-          .filter((ingredient) => ingredient.recipe_id === allRecipes[0].id)
-          .map((ingredient) => ({
-            id: ingredient.ingredient_id,
-            quantity: ingredient.quantity,
-          })),
-      };
-      const recipe = await repository.read({ id: allRecipes[0].id });
-      expect(recipe).toBeTruthy();
-      expect(recipe).toMatchObject(expectedResult);
-    } catch (error) {
-      console.error(error);
-      expect(false).toBeTruthy();
-    }
+  it('should be able to read an existing recipe by id', async () => {
+    dbTracker.on.select('recipes').response({
+      id: validRecipeEntry.id,
+      name: validRecipeEntry.name,
+      numberOfPeople: validRecipeEntry.numberOfPeople,
+    });
+    dbTracker.on.select('steps').response(validRecipeEntry.steps);
+    dbTracker.on
+      .select('recipes_ingredients')
+      .response(validRecipeEntry.ingredients);
+    const recipe = await repository.read({ id: validRecipeEntry.id });
+    expect(recipe).not.toBeUndefined();
+    expect(recipe?.id).toEqual(validRecipeEntry.id);
+    expect(recipe?.name).toEqual(validRecipeEntry.name);
+    expect(recipe?.numberOfPeople).toEqual(validRecipeEntry.numberOfPeople);
+
+    const selectHistory = dbTracker.history.select;
+    expect(selectHistory.length).toEqual(3);
+
+    const selectRecipe = selectHistory.find((select) =>
+      select.sql.toLowerCase().includes('recipes')
+    );
+    expect(selectRecipe).not.toBeUndefined();
+    expect(selectRecipe?.method).toEqual('select');
+    expect(selectRecipe?.bindings).toContainEqual(validRecipeEntry.id);
+
+    const stepsSelect = selectHistory.find((select) =>
+      select.sql.toLowerCase().includes('steps')
+    );
+    expect(stepsSelect).not.toBeUndefined();
+    expect(stepsSelect?.method).toEqual('select');
+    expect(stepsSelect?.bindings).toContainEqual(validRecipeEntry.id);
+
+    const ingredientsSelect = selectHistory.find((select) =>
+      select.sql.toLowerCase().includes('recipes_ingredients')
+    );
+    expect(ingredientsSelect).not.toBeUndefined();
+    expect(ingredientsSelect?.method).toEqual('select');
+    expect(ingredientsSelect?.bindings).toContainEqual(validRecipeEntry.id);
   });
 });
