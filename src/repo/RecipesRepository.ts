@@ -43,13 +43,10 @@ export class RecipesRepository extends Repository<Recipe> {
     return results;
   }
 
-  public async list({
-    name,
-    page,
-  }: {
-    name: Recipe['name'];
-    page: number;
-  }): Promise<RecipePreview[]> {
+  public async list(
+    { name }: Partial<RecipePreview>,
+    page: number
+  ): Promise<RecipePreview[]> {
     const results = await knex<RecipePreview>('recipes')
       .select('id', 'name', 'nb_people as numberOfPeople')
       .where('name', 'LIKE', `%${name}%`)
@@ -60,9 +57,7 @@ export class RecipesRepository extends Repository<Recipe> {
 
   public async read({
     id,
-  }: {
-    id: number;
-  }): Promise<Entry<Recipe> | undefined> {
+  }: Partial<Entry<Recipe>>): Promise<Entry<Recipe> | undefined> {
     const result = await knex.transaction(async (trx) => {
       const [recipe, steps, ingredients] = await Promise.all([
         trx('recipes')

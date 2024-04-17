@@ -12,7 +12,7 @@ export class IngredientsRepository extends Repository<Ingredient> {
     const result = await knex.transaction(async (trx) => {
       const existing = await trx<Entry<Ingredient>>('ingredients')
         .select('*')
-        .where('name', 'LIKE', `%${name}%`)
+        .where({ name })
         .first();
       if (existing) {
         return existing;
@@ -39,13 +39,10 @@ export class IngredientsRepository extends Repository<Ingredient> {
     return results;
   }
 
-  public async list({
-    name,
-    page,
-  }: {
-    name: Ingredient['name'];
-    page: number;
-  }): Promise<Entry<Ingredient>[]> {
+  public async list(
+    { name }: Partial<Entry<Ingredient>>,
+    page: number
+  ): Promise<Entry<Ingredient>[]> {
     const results = await knex<Entry<Ingredient>>('ingredients')
       .select('*')
       .where('name', 'LIKE', `%${name}%`)
