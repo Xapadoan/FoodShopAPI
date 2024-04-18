@@ -6,8 +6,8 @@ jest.mock('@lib/auth', () => getMockedClient);
 
 import express from 'express';
 import request from 'supertest';
-import { onResetUpload } from '../../../src/controllers/auth/webhook/resetUpload';
-import { expectResolved } from '../../utils';
+import { onResetUpload } from '@controllers/auth/webhook/resetUpload';
+import { expectResolved } from '../../../utils';
 
 describe('Reset Upload Webhook Endpoint', () => {
   const app = express();

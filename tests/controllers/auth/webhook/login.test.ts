@@ -6,8 +6,8 @@ jest.mock('@lib/auth', () => getMockedClient);
 
 import express from 'express';
 import request from 'supertest';
-import { onLogin } from '../../../src/controllers/auth/webhook/login';
-import { expectResolved } from '../../utils';
+import { onLogin } from '@controllers/auth/webhook/login';
+import { expectResolved } from '../../../utils';
 
 describe('Login Webhook Endpoint', () => {
   const app = express();
