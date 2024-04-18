@@ -2,7 +2,6 @@ import express from 'express';
 import request from 'supertest';
 import recipesRouter from '../../../src/controllers/recipes';
 import {
-  Recipe,
   RecipePreview,
   RecipesRepository,
 } from '../../../src/repo/RecipesRepository';
@@ -16,7 +15,7 @@ describe('Recipes Read All Controller', () => {
   const app = express();
   let listSpy: jest.SpyInstance<
     Promise<RecipePreview[]>,
-    [{ name: Recipe['name']; page: number }],
+    [Partial<RecipePreview>, number],
     unknown
   >;
   beforeAll(() => {
@@ -50,7 +49,7 @@ describe('Recipes Read All Controller', () => {
   it('should return a paginated list with status 200 and apply default filters', async () => {
     const response = await request(app).get('/');
     expect(listSpy).toHaveBeenCalledTimes(1);
-    expect(listSpy).toHaveBeenCalledWith({ name: '', page: 0 });
+    expect(listSpy).toHaveBeenCalledWith({ name: '' }, 0);
     expectResolved(listSpy).toMatchObject(listResults);
     expect(response.status).toEqual(200);
     expect(response.body).toMatchObject({
@@ -75,7 +74,7 @@ describe('Recipes Read All Controller', () => {
   it('should pass query parameters to list', async () => {
     await request(app).get('/?name=n&page=4');
     expect(listSpy).toHaveBeenCalledTimes(1);
-    expect(listSpy).toHaveBeenCalledWith({ name: 'n', page: 4 });
+    expect(listSpy).toHaveBeenCalledWith({ name: 'n' }, 4);
   });
 
   it('should return empty pagination if list results is empty', async () => {
