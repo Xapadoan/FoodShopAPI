@@ -1,9 +1,10 @@
-import { Entry } from '@repo/Repository';
-import { Staff } from '@repo/StaffsRepository';
-import { Shop } from '@repo/ShopsRepository';
-import { Ingredient } from '@repo/IngredientsRepository';
-import { Stock } from '@repo/StocksRepository';
-import { Recipe, RecipePreview } from '@repo/RecipesRepository';
+import type { Entry } from '@repo/Repository';
+import type { Staff } from '@repo/StaffsRepository';
+import type { Shop } from '@repo/ShopsRepository';
+import type { Ingredient } from '@repo/IngredientsRepository';
+import type { Stock } from '@repo/StocksRepository';
+import type { Recipe, RecipePreview } from '@repo/RecipesRepository';
+import type { Response, Request } from 'express';
 
 export function expectResolved(spy: jest.SpyInstance) {
   return expect(spy.mock.results[0]?.value).resolves;
@@ -81,3 +82,7 @@ export const validRecipesList: Array<RecipePreview> = [
     numberOfPeople: 4,
   },
 ];
+
+export function routeMock(_: Request, res: Response) {
+  return res.json({ success: true });
+}

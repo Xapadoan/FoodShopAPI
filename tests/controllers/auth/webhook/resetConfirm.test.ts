@@ -1,20 +1,20 @@
 import getMockedClient, {
   AuthClientMock,
-  onRegisterUploadOutput,
+  onResetConfirmOutput,
 } from '@mocks/lib/auth';
 jest.mock('@lib/auth', () => getMockedClient);
 
 import express from 'express';
 import request from 'supertest';
-import { onRegister } from '../../../src/controllers/auth/webhook/register';
-import { expectResolved } from '../../utils';
+import { onResetConfirm } from '@controllers/auth/webhook/resetConfirm';
+import { expectResolved } from '../../../utils';
 
-describe('Register Webhook Endpoint', () => {
+describe('Reset Confirm Webhook Endpoint', () => {
   const app = express();
 
   beforeAll(() => {
     app.use(express.json({ type: 'application/json' }));
-    app.post('/', onRegister);
+    app.post('/', onResetConfirm);
   });
   afterAll(() => {
     jest.restoreAllMocks();
@@ -29,7 +29,7 @@ describe('Register Webhook Endpoint', () => {
     getMockedClient.mockImplementationOnce(() => {
       throw new Error('Intentional get auth client error');
     });
-    AuthClientMock.onRegisterUpload.mockImplementationOnce(() => {
+    AuthClientMock.onResetConfirm.mockImplementationOnce(() => {
       throw new Error('Intentional onRegisterUpload error');
     });
     const responses = await Promise.all([
@@ -45,13 +45,11 @@ describe('Register Webhook Endpoint', () => {
     const response = await request(app).post('/').send({ fake: 'data' });
     expect(getMockedClient).toHaveBeenCalled();
     expect(getMockedClient).toHaveReturnedWith(AuthClientMock);
-    expect(AuthClientMock.onRegisterUpload).toHaveBeenCalledWith({
-      fake: 'data',
-    });
-    expectResolved(AuthClientMock.onRegisterUpload).toMatchObject(
-      onRegisterUploadOutput
-    );
+    expect(AuthClientMock.onResetConfirm).toHaveBeenCalled();
+    expectResolved(AuthClientMock.onResetConfirm).toEqual(onResetConfirmOutput);
     expect(response.ok);
-    expect(response.body).toMatchObject(onRegisterUploadOutput);
+    expect(response.body).toMatchObject({
+      EACResetToken: onResetConfirmOutput,
+    });
   });
 });

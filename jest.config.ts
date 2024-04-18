@@ -22,7 +22,7 @@ const config: Config = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: ['src/**/*.ts'],
+  collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
@@ -88,6 +88,7 @@ const config: Config = {
     '^@mocks/(.*)$': '<rootDir>/tests/mocks/$1',
     '^@repo/(.*)$': '<rootDir>/src/repo/$1',
     '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^@controllers/(.*)$': '<rootDir>/src/controllers/$1',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

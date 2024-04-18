@@ -5,7 +5,8 @@
     "paths": {
       "@mocks/*": ["tests/mocks/*"],
       "@repo/*": ["src/repo/*"],
-      "@lib/*": ["src/lib/*"]
+      "@lib/*": ["src/lib/*"],
+      "@controllers/*": ["src/controllers/*"]
     }
   },
 }
