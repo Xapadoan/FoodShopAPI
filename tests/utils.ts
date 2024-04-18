@@ -82,3 +82,7 @@ export const validRecipesList: Array<RecipePreview> = [
     numberOfPeople: 4,
   },
 ];
+
+export function routeMock(_: Request, res: Response) {
+  return res.json({ success: true });
+}
