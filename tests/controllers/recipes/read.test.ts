@@ -24,7 +24,7 @@ describe('Recipes Read Controller', () => {
   const app = express();
   let readSpy: jest.SpyInstance<
     Promise<Entry<Recipe> | undefined>,
-    [{ id: number }],
+    [Partial<Entry<Recipe>>],
     unknown
   >;
   beforeAll(() => {

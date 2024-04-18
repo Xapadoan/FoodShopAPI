@@ -20,10 +20,7 @@ export const readAll = async (
     }
     const { name, page } = validQuery;
     const repository = new IngredientsRepository();
-    const results = await repository.list({
-      name,
-      page,
-    });
+    const results = await repository.list({ name }, page);
     return res.json({
       page,
       length: results.length,
