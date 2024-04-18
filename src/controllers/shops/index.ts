@@ -1,5 +1,5 @@
 import express from 'express';
-import { publicShop } from 'src/controllers/middlewares/publicShop';
+import { publicShop } from '../middlewares/publicShop';
 import { stocksRouter } from './stocks';
 import { read } from './read';
 
