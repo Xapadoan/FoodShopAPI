@@ -52,6 +52,7 @@ export const AuthClientMock = {
   onResetConfirm: jest.fn().mockResolvedValue(onResetConfirmOutput),
   onResetUpload: jest.fn().mockResolvedValue(onResetUploadOutput),
   resetSetupSession: jest.fn().mockResolvedValue(resetSessionOutput),
+  deleteSession: jest.fn().mockResolvedValue(1),
 };
 
 export default jest.fn(() => AuthClientMock);
