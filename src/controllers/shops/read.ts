@@ -13,7 +13,7 @@ export async function read(
     }
     return res.json(req.shop);
   } catch (error) {
-    console.error('Failed to get me: ', error);
+    console.error('Failed to read shop: ', error);
     return res.status(500).json({ error: 'Unexpected server error' });
   }
 }
