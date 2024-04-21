@@ -8,18 +8,22 @@ export async function staffAuthMiddleware(
   next: NextFunction
 ) {
   try {
-    const sessionId = req.headers['authorization']?.split(' ')?.[1];
-    if (!sessionId) {
-      return res.status(401).json({ error: 'Missing Authentication' });
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const [authType, sessionId] = authHeader.split(' ');
+    if (authType !== 'Bearer' || !sessionId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
     const staffId = await authClient().readSession(sessionId);
     if (!staffId) {
-      return res.status(401).json({ error: 'Missing Authentication' });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
     const staffRepo = new StaffsRepository();
     const staff = await staffRepo.read({ id: Number(staffId) });
     if (!staff) {
-      return res.status(403).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
     req.staff = staff;
     return next();

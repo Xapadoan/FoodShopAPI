@@ -6,18 +6,23 @@ export async function checkShopStaffRelation(
   res: Response,
   next: NextFunction
 ) {
-  if (!req.staff) {
-    return res.status(401).json({ error: 'Missing Authentication' });
+  try {
+    if (!req.staff) {
+      return res.status(401).json({ error: 'Missing Authentication' });
+    }
+    const shopId = Number(req.params.shopId);
+    if (!Number.isInteger(shopId)) {
+      return res.status(400).json({ error: 'shopId must be an integer' });
+    }
+    const shopsRepo = new ShopsRepository();
+    const shop = await shopsRepo.readStaffShop(req.staff.id, shopId);
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+    req.shop = shop;
+    return next();
+  } catch (error) {
+    console.error('Failed to check shop-staff relation', error);
+    return res.status(500).json({ error: 'Unexpected server error' });
   }
-  const shopId = Number(req.params.shopId);
-  if (!Number.isInteger(shopId)) {
-    return res.status(400).json({ error: 'shopId must be an integer' });
-  }
-  const shopsRepo = new ShopsRepository();
-  const shop = await shopsRepo.readStaffShop(req.staff.id, shopId);
-  if (!shop) {
-    return res.status(404).json({ error: 'Shop not found' });
-  }
-  req.shop = shop;
-  return next();
 }

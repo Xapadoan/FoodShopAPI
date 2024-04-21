@@ -22,7 +22,7 @@ export const update = async (
     const body = {
       ...req.body,
       unitPrice: Number(req.body.unitPrice),
-      quantity: Number(req.body.unitPrice),
+      quantity: Number(req.body.quantity),
     };
     if (!stocksRepo.validate(body)) {
       return res.status(400).json({ error: 'Bad Stock' });

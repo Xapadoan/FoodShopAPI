@@ -41,6 +41,8 @@ export const resetSessionOutput = {
   restore: 'session',
 };
 
+export const readSessionOutput = '42';
+
 export const AuthClientMock = {
   initRegister: jest.fn().mockResolvedValue(iniRegisterOutput),
   onRegisterUpload: jest.fn().mockResolvedValue(onRegisterUploadOutput),
@@ -52,6 +54,8 @@ export const AuthClientMock = {
   onResetConfirm: jest.fn().mockResolvedValue(onResetConfirmOutput),
   onResetUpload: jest.fn().mockResolvedValue(onResetUploadOutput),
   resetSetupSession: jest.fn().mockResolvedValue(resetSessionOutput),
+  deleteSession: jest.fn().mockResolvedValue(1),
+  readSession: jest.fn().mockResolvedValue(readSessionOutput),
 };
 
 export default jest.fn(() => AuthClientMock);

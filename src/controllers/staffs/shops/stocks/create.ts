@@ -18,15 +18,12 @@ export const create = async (
     const body = {
       ...req.body,
       unitPrice: Number(req.body.unitPrice),
-      quantity: Number(req.body.unitPrice),
+      quantity: Number(req.body.quantity),
     };
     if (!stocksRepo.validate(body)) {
       return res.status(400).json({ error: 'Bad Stock' });
     }
     const stock = await stocksRepo.create({ ...body, shopId: req.shop.id });
-    if (!stock) {
-      return res.status(404).json({ error: 'Stock not found' });
-    }
     return res.status(201).json(stock);
   } catch (err) {
     console.error('Failed to create stock: ', err);
