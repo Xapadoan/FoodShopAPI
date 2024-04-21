@@ -3,7 +3,7 @@ import '../../../src/moduleAugmentations/express';
 import { validShopEntry } from '../../utils';
 
 export const publicShopMiddlewareMock = jest.fn(
-  <T = unknown>(req: Request<T>, _: Response, next: NextFunction) => {
+  <P = unknown>(req: Request<P>, _: Response, next: NextFunction) => {
     req.shop = validShopEntry;
     return next();
   }
