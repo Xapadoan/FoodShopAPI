@@ -1,5 +1,6 @@
 import express, { Application } from 'express';
 import {
+  expectRejected,
   expectResolved,
   validShop,
   validShopEntry,
@@ -28,8 +29,8 @@ describe('Create shop endpoint', () => {
       .mockResolvedValue(undefined);
     app = express();
     app.use(express.json({ type: 'application/json' }));
-    app.get('/shops', staffAuthMiddlewareMock, create);
-    app.get('/', create);
+    app.post('/shops', staffAuthMiddlewareMock, create);
+    app.post('/', create);
   });
   afterAll(() => {
     jest.restoreAllMocks();
@@ -40,7 +41,7 @@ describe('Create shop endpoint', () => {
   });
 
   it('should return 401 if staff auth middleware was not called', async () => {
-    const response = await request(app).get('/');
+    const response = await request(app).post('/');
     expect(staffAuthMiddlewareMock).not.toHaveBeenCalled();
     expect(validateSpy).not.toHaveBeenCalled();
     expect(createSpy).not.toHaveBeenCalled();
@@ -49,7 +50,7 @@ describe('Create shop endpoint', () => {
 
   it('should return 400 if validation fails', async () => {
     validateSpy.mockReturnValueOnce(false);
-    const response = await request(app).get('/shops').send(validShop);
+    const response = await request(app).post('/shops').send(validShop);
     expect(staffAuthMiddlewareMock).toHaveBeenCalled();
     expect(validateSpy).toHaveBeenCalledWith(validShop);
     expect(validateSpy).toHaveReturnedWith(false);
@@ -57,8 +58,27 @@ describe('Create shop endpoint', () => {
     expect(response.status).toEqual(400);
   });
 
+  it('should return 500 if anything throws', async () => {
+    createSpy.mockImplementationOnce(async () => {
+      throw new Error('Intentional createSpy Error');
+    });
+    addStaffSpy.mockImplementationOnce(async () => {
+      throw new Error('Intentional createSpy Error');
+    });
+
+    const responses = await Promise.all([
+      request(app).post('/shops').send(validShop),
+      request(app).post('/shops').send(validShop),
+    ]);
+    expectRejected(createSpy).toBeTruthy();
+    expectRejected(addStaffSpy).toBeTruthy();
+    responses.forEach((response) => {
+      expect(response.status).toEqual(500);
+    });
+  });
+
   test('best case scenario', async () => {
-    const response = await request(app).get('/shops').send(validShop);
+    const response = await request(app).post('/shops').send(validShop);
     expect(staffAuthMiddlewareMock).toHaveBeenCalled();
     expect(validateSpy).toHaveBeenCalledWith(validShop);
     expect(validateSpy).toHaveReturnedWith(true);
