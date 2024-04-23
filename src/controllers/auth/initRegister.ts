@@ -16,7 +16,7 @@ export const initRegister = async (
     }
     const existingUser = await staffRepo.read({ email: req.body.email });
     if (existingUser) {
-      return res.status(429).json({ error: 'User already exists' });
+      return res.status(409).json({ error: 'User already exists' });
     }
     const createdStaff = await staffRepo.create(req.body);
     const client = authClient();
