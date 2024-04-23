@@ -51,14 +51,14 @@ describe('Init Register Endpoint', () => {
     validateStaffSpy.mockReturnValue(true);
   });
 
-  it('should reject with 429 when user already exists', async () => {
+  it('should reject with 409 when user already exists', async () => {
     readStaffSpy.mockResolvedValueOnce(validStaffEntry);
     const response = await request(app).post('/').send(validStaff);
     expect(validateStaffSpy).toHaveBeenCalled();
     expect(validateStaffSpy).toHaveReturnedWith(true);
     expect(readStaffSpy).toHaveBeenCalledWith({ email: validStaff.email });
     expectResolved(readStaffSpy).toMatchObject(validStaffEntry);
-    expect(response.statusCode).toEqual(429);
+    expect(response.statusCode).toEqual(409);
   });
 
   it('should reject with 500 if anything throws', async () => {
