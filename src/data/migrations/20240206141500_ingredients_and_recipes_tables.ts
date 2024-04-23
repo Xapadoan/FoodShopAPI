@@ -5,6 +5,7 @@ export async function up(knex: Knex) {
     .createTable('ingredients', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
       table.string('name', 100).notNullable();
+      table.unique('name');
     })
     .createTable('recipes', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
@@ -24,6 +25,7 @@ export async function up(knex: Knex) {
         .onDelete('cascade');
       table.tinyint('ranking').unsigned().notNullable();
       table.text('text').notNullable();
+      table.unique(['recipe_id', 'ranking']);
     })
     .createTable('recipes_ingredients', (table) => {
       table.bigIncrements('id', { primaryKey: true }).unsigned();
@@ -45,6 +47,7 @@ export async function up(knex: Knex) {
         .inTable('ingredients')
         .onDelete('set null');
       table.string('quantity').notNullable();
+      table.unique(['recipe_id', 'ingredient_id']);
     });
 }
 
